@@ -6,7 +6,8 @@ FROM golang:1.22-alpine AS builder
 WORKDIR /app
 
 # 复制 Go 模块文件
-COPY go.mod go.sum ./
+COPY go.mod ./
+COPY go.sum* ./
 
 # 下载依赖项
 RUN go mod download
