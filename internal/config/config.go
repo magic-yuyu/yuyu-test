@@ -109,6 +109,8 @@ func getEnv(key, defaultValue string) string {
 
 // Load 从环境变量加载配置
 func Load() (*Config, error) {
+	fmt.Println("GO_ENV:", os.Getenv("GO_ENV"))
+
 	port, err := strconv.Atoi(getEnv("PORT", "8080"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid PORT: %w", err)
@@ -162,8 +164,6 @@ func Load() (*Config, error) {
 	if err := validator(config); err != nil {
 		return nil, err
 	}
-
-	fmt.Println("GO_ENV:", os.Getenv("GO_ENV"))
 
 	return config, nil
 }
