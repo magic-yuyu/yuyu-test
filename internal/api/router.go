@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,19 +22,40 @@ import (
 
 var startTime = time.Now()
 
-// 仅允许本地和内网访问的中间件
+// 仅允许本地和内网访问的中间件 目前没有使用这个函数
 func k8sProbeOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
 		fmt.Println("访问ip:", ip)
-
-		if ip == "127.0.0.1" || strings.HasPrefix(ip, "192.168.") {
+		if isAllowedHealthCheckIP(ip) {
 			c.Next()
 			return
 		}
 		c.JSON(403, gin.H{"error": "forbidden"})
 		c.Abort()
 	}
+}
+func isAllowedHealthCheckIP(ip string) bool {
+	if ip == "127.0.0.1" ||
+		strings.HasPrefix(ip, "192.168.") ||
+		strings.HasPrefix(ip, "10.") ||
+		(strings.HasPrefix(ip, "172.") && is172Private(ip)) {
+		return true
+	}
+	return false
+}
+
+func is172Private(ip string) bool {
+	// 172.16.0.0 - 172.31.255.255
+	parts := strings.Split(ip, ".")
+	if len(parts) < 2 {
+		return false
+	}
+	if parts[0] == "172" {
+		second, _ := strconv.Atoi(parts[1])
+		return second >= 16 && second <= 31
+	}
+	return false
 }
 
 // Router API路由
@@ -75,8 +97,8 @@ func NewRouter(
 func (r *Router) Setup() *gin.Engine {
 	router := gin.Default()
 
-	// 健康检查（仅允许本地和内网访问）
-	router.GET("/health", k8sProbeOnly(), func(c *gin.Context) {
+	// 健康检查（允许所有来源访问）
+	router.GET("/health", func(c *gin.Context) {
 		cfg, _ := config.Load()
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
