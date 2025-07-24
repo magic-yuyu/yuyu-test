@@ -163,5 +163,7 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
+	fmt.Println("GO_ENV:", os.Getenv("GO_ENV"))
+
 	return config, nil
 }
