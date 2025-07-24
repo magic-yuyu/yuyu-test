@@ -18,6 +18,8 @@ go.work
 .env
 .env.local
 .env.production
+.env.development
+.env.test
 
 # IDE文件
 .vscode/

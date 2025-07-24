@@ -109,6 +109,11 @@ func getEnv(key, defaultValue string) string {
 
 // Load 从环境变量加载配置
 func Load() (*Config, error) {
+
+	for _, e := range os.Environ() {
+		fmt.Println(e)
+	}
+
 	fmt.Println("GO_ENV:", os.Getenv("GO_ENV"))
 
 	port, err := strconv.Atoi(getEnv("PORT", "8080"))
