@@ -140,10 +140,6 @@ brew install --cask postman
 
 在`debug/apitest.http`文件中，我们定义了以下变量：
 
-```http
-@baseUrl = http://localhost:8080
-@apiKey = 
-```
 
 ### 认证方式
 

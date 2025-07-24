@@ -94,10 +94,6 @@ go run cmd/server/main.go
 
 在 `apitest.http` 文件中定义了以下变量：
 
-```http
-@baseUrl = http://localhost:8080
-@apiKey = 
-```
 
 **注意**: `apiKey` 需要从创建租户的响应中获取。
 
