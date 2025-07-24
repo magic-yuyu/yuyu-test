@@ -1,0 +1,373 @@
+@baseUrl = http://localhost:8080
+# M2M服务认证用变量（请用base64(client_id:client_secret)替换）
+@base64_clientid_secret = TjBOTkJQeXRxQUstYzU2c1RDZGphQT09OjBhNnhVUEp1N3FuYTVfaUZBSlhScTl3NEpRX1JFcjlNZzM2R0htUms1MlE9
+@base64_invalid = <base64>
+
+@public_key = c533d66740626687b7ed8bdbde3206f792bc47338f01c48b4fd9c4c01e026a01
+@secret_key = ce81dc313b896855a01fdf330a1501ff771f08504fe965c0b71075c66066fe32
+
+### ========================================
+### 1. 健康检查
+### ========================================
+
+### 健康检查
+GET {{baseUrl}}/health
+Content-Type: application/json
+
+### ========================================
+### 2. 租户管理 (无需认证)
+### ========================================
+
+### 创建新租户
+POST {{baseUrl}}/v1/tenants
+Content-Type: application/json
+
+{
+  "name": "debug应用"
+}
+
+### 获取租户信息
+GET {{baseUrl}}/v1/tenants/tnt_7b832b99247244083ff8ae783f185f81
+Content-Type: application/json
+
+### ========================================
+### 3. 用户认证 (需要API密钥)
+### ========================================
+
+### 用户注册
+POST {{baseUrl}}/v1/auth/register
+Content-Type: application/json
+Authorization: Bearer {{public_key}}
+
+{
+  "email": "test@example.com",
+  "password": "password123",
+  "profile": {
+    "name": "测试用户",
+    "role": "user",
+    "department": "技术部"
+  }
+}
+
+### 用户登录
+POST {{baseUrl}}/v1/auth/login
+Content-Type: application/json
+Authorization: Bearer {{public_key}}
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNyXzM0MTUyNzQ1NzZkZGIxN2VhZDZmMDIyZTQ0YmM5NDg5IiwidGVuYW50X2lkIjoidG50XzdiODMyYjk5MjQ3MjQ0MDgzZmY4YWU3ODNmMTg1ZjgxIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiZXhwIjoxNzUzMjY0MTA3LCJuYmYiOjE3NTMxNzc3MDcsImlhdCI6MTc1MzE3NzcwN30.Xx-y_dllFvSfXkMLKD_lGrWzWKMVuXW5s6EHOlWN01A
+
+### ========================================
+### 4. 用户管理 (需要JWT认证)
+### ========================================
+
+### 获取当前用户信息 (需要JWT令牌)
+GET {{baseUrl}}/v1/users/me
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### ========================================
+### 5. 用户管理 (需要API密钥)
+### ========================================
+
+### 获取租户下所有用户
+GET {{baseUrl}}/v1/users
+Content-Type: application/json
+Authorization: Bearer {{public_key}}
+
+### 获取指定用户信息
+GET {{baseUrl}}/v1/users/usr_3415274576ddb17ead6f022e44bc9489
+Content-Type: application/json
+Authorization: Bearer {{public_key}}
+
+### ========================================
+### 6. 错误测试用例
+### ========================================
+
+### 测试无效的API密钥
+POST {{baseUrl}}/v1/auth/register
+Content-Type: application/json
+Authorization: Bearer invalid_api_key
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### 测试无效的JWT令牌
+GET {{baseUrl}}/v1/users/me
+Content-Type: application/json
+Authorization: Bearer invalid_jwt_token
+
+### 测试无效的邮箱格式
+POST {{baseUrl}}/v1/auth/register
+Content-Type: application/json
+Authorization: Bearer {{public_key}}
+
+{
+  "email": "invalid-email",
+  "password": "password123"
+}
+
+### 测试密码太短
+POST {{baseUrl}}/v1/auth/register
+Content-Type: application/json
+Authorization: Bearer {{public_key}}
+
+{
+  "email": "test@example.com",
+  "password": "123"
+}
+
+### 测试不存在的租户
+GET {{baseUrl}}/v1/tenants/non_existent_tenant
+Content-Type: application/json
+
+### 测试不存在的用户
+GET {{baseUrl}}/v1/users/non_existent_user
+Content-Type: application/json
+Authorization: Bearer {{public_key}}
+
+### ========================================
+### 7. 批量测试用例
+### ========================================
+
+### 批量创建用户测试
+POST {{baseUrl}}/v1/auth/register
+Content-Type: application/json
+Authorization: Bearer {{public_key}}
+
+{
+  "email": "user1@example.com",
+  "password": "password123",
+  "profile": {
+    "name": "用户1",
+    "role": "user"
+  }
+}
+
+###
+
+POST {{baseUrl}}/v1/auth/register
+Content-Type: application/json
+Authorization: Bearer {{public_key}}
+
+{
+  "email": "user2@example.com",
+  "password": "password123",
+  "profile": {
+    "name": "用户2",
+    "role": "admin"
+  }
+}
+
+###
+
+POST {{baseUrl}}/v1/auth/register
+Content-Type: application/json
+Authorization: Bearer {{public_key}}
+
+{
+  "email": "user3@example.com",
+  "password": "password123",
+  "profile": {
+    "name": "用户3",
+    "role": "manager"
+  }
+}
+
+### ========================================
+### 8. 性能测试用例
+### ========================================
+
+### 并发健康检查测试
+GET {{baseUrl}}/health
+
+###
+
+GET {{baseUrl}}/health
+
+###
+
+GET {{baseUrl}}/health
+
+### ========================================
+### 9. 环境变量测试
+### ========================================
+
+### 测试不同环境的健康检查
+GET http://localhost:8080/health
+
+###
+
+GET http://127.0.0.1:8080/health
+
+### ========================================
+### 10. 响应格式验证
+### ========================================
+
+### 验证成功响应格式
+POST {{baseUrl}}/v1/tenants
+Content-Type: application/json
+
+{
+  "name": "响应格式测试"
+}
+
+### 验证错误响应格式
+POST {{baseUrl}}/v1/auth/register
+Content-Type: application/json
+Authorization: Bearer invalid_key
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### ========================================
+### 对内服务认证（M2M）
+### ========================================
+
+### 获取服务JWT（成功）对外/三方服务认证
+POST {{baseUrl}}/oauth/token
+Authorization: Basic {{base64_clientid_secret}}
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+
+### 获取服务JWT（无效client）对外/三方服务认证
+POST {{baseUrl}}/oauth/token
+Authorization: Basic {{base64_invalid}}
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+
+### 获取服务JWT（grant_type错误）
+POST http://localhost:8080/oauth/token
+Authorization: Basic {{base64_clientid_secret}}
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=invalid_type
+
+### ========================================
+### 11. 内部服务管理API测试用例
+### ========================================
+
+### 服务注册
+POST {{baseUrl}}/v1/internal/services/register
+Content-Type: application/json
+
+{
+  "service_name": "测试服务",
+  "description": "测试服务描述"
+}
+
+### 服务认证（获取JWT）
+POST {{baseUrl}}/v1/internal/services/authenticate
+Content-Type: application/json
+
+{
+  "client_id": "N0NNBPytqAK-c56sTCdjaA==",
+  "client_secret": "0a6xUPJu7qna5_iFAJXRq9w4JQ_REr9Mg36GHmRk52Q="
+}
+
+### 验证服务JWT
+POST {{baseUrl}}/v1/internal/services/validate-token
+Content-Type: application/json
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpbnRlcm5hbC1zZXJ2aWNlcyIsImV4cCI6MTc1MzE4MzU3MiwiaWF0IjoxNzUzMTgzMjcyLCJpc3MiOiJpZGFhcy1pbnRlcm5hbCIsInNjb3BlcyI6W10sInN1YiI6Ik4wTk5CUHl0cUFLLWM1NnNUQ2RqYUE9PSJ9.mYoSGcPHtxvI3i2EhoepKx55an5h21RjBU5U71NkeI8"
+}
+
+### 授权Scope权限
+POST {{baseUrl}}/v1/internal/services/grant-scope
+Content-Type: application/json
+Authorization: Bearer <请填写服务JWT>
+
+{
+  "client_id": "<请填写client_id>",
+  "scope_name": "user:read"
+}
+
+### 撤销Scope权限
+POST {{baseUrl}}/v1/internal/services/revoke-scope
+Content-Type: application/json
+Authorization: Bearer <请填写服务JWT>
+
+{
+  "client_id": "<请填写client_id>",
+  "scope_name": "user:read"
+}
+
+### 检查权限
+POST {{baseUrl}}/v1/internal/services/check-permission
+Content-Type: application/json
+Authorization: Bearer <请填写服务JWT>
+
+{
+  "client_id": "<请填写client_id>",
+  "scope_name": "user:read"
+}
+
+### 服务列表
+GET {{baseUrl}}/v1/internal/services
+Content-Type: application/json
+Authorization: Bearer <请填写服务JWT>
+
+### 获取服务访问日志
+GET {{baseUrl}}/v1/internal/services/<请填写client_id>/logs?limit=10&offset=0
+Content-Type: application/json
+Authorization: Bearer <请填写服务JWT>
+
+### 获取服务统计信息
+GET {{baseUrl}}/v1/internal/services/<请填写client_id>/statistics?since=24h
+Content-Type: application/json
+Authorization: Bearer <请填写服务JWT>
+
+### 清理过期Token
+POST {{baseUrl}}/v1/internal/services/cleanup-tokens
+Content-Type: application/json
+Authorization: Bearer <请填写服务JWT>
+
+### ========================================
+### 12. /api/internal/ 路由权限校验测试用例
+### ========================================
+
+### user:read 权限访问
+GET {{baseUrl}}/api/internal/users
+Authorization: Bearer <请填写user:read服务JWT>
+
+### user:write 权限访问
+POST {{baseUrl}}/api/internal/users
+Authorization: Bearer <请填写user:write服务JWT>
+Content-Type: application/json
+
+{
+  "email": "internaluser@example.com",
+  "profile": {"name": "内部用户"}
+}
+
+### tenant:read 权限访问
+GET {{baseUrl}}/api/internal/tenants
+Authorization: Bearer <请填写tenant:read服务JWT>
+
+### auth:token 权限访问
+POST {{baseUrl}}/api/internal/auth/token
+Authorization: Bearer <请填写auth:token服务JWT>
+Content-Type: application/json
+
+{
+  "user_id": "usr_def456ghi789"
+}
+
+### internal:admin 权限访问
+GET {{baseUrl}}/api/internal/admin/services
+Authorization: Bearer <请填写internal:admin服务JWT>
+
+### 权限不足（应返回403）
+GET {{baseUrl}}/api/internal/users
+Authorization: Bearer <请填写无user:read权限的服务JWT>

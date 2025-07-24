@@ -1,6 +1,6 @@
 # --- 第一阶段：构建阶段 (Builder Stage) ---
 # 使用官方的Go语言镜像作为构建环境
-FROM golang:1.22-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -16,7 +16,7 @@ RUN go mod download
 COPY . .
 
 # 构建Go应用。使用CGO_ENABLED=0和-ldflags来创建一个静态的、无依赖的二进制文件
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o /main .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o /main ./cmd/server
 
 
 # --- 第二阶段：运行阶段 (Final Stage) ---
@@ -33,6 +33,6 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 EXPOSE 8080
 
 # 定义容器启动时运行的命令
-ENTRYPOINT ["/main"]
+# ENTRYPOINT ["/main"]
 
-# CMD ["./main"]
+CMD ["./main"]

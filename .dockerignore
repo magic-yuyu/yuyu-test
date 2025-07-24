@@ -4,4 +4,8 @@ README.md
 Dockerfile
 .dockerignore
 railway.toml
-*.md 
+scripts/
+config/
+debug/
+docs/
+*.md

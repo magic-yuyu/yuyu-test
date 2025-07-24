@@ -1,0 +1,83 @@
+# .cursor-rules
+
+# ----------------------------
+# 1. 项目基本信息
+# ----------------------------
+project_language: go
+overview: "这是一个使用Go语言构建的IDaaS（身份认证即服务）SaaS平台，采用模块化单体架构，部署在Railway上。"
+
+# ----------------------------
+# 2. 技术栈与库偏好
+# ----------------------------
+preferred_libraries:
+  - name: "Gin"
+    package: "github.com/gin-gonic/gin"
+    usage: "作为主要的Web框架，用于API路由和请求处理。"
+  - name: "pgx"
+    package: "github.com/jackc/pgx/v5"
+    usage: "作为高性能的PostgreSQL驱动，用于数据库连接。"
+  - name: "sqlc"
+    package: "github.com/sqlc-dev/sqlc"
+    usage: "作为代码生成工具，从原生SQL生成类型安全的Go代码。不要直接编写数据库访问代码，应通过sqlc生成。"
+  - name: "golang-jwt"
+    package: "github.com/golang-jwt/jwt/v5"
+    usage: "用于生成和验证JWT令牌。"
+  - name: "bcrypt"
+    package: "golang.org/x/crypto/bcrypt"
+    usage: "用于密码的哈希和验证。"
+
+# ----------------------------
+# 3. 目录与文件结构约定
+# ----------------------------
+directory_layout:
+  - path: "cmd/server/main.go"
+    description: "应用的主入口文件。负责初始化和启动服务。"
+  - path: "internal/api/"
+    description: "HTTP API层。包含路由、中间件和请求处理器(handlers)。"
+  - path: "internal/store/"
+    description: "数据存储层。核心是/queries目录下的.sql文件，sqlc会根据它们在/database目录下生成Go代码。"
+  - path: "internal/{module}/"
+    description: "业务逻辑模块（如user, tenant, auth）。包含核心的业务处理逻辑(services)。"
+  - path: "migrations/"
+    description: "存放数据库迁移的SQL文件，使用golang-migrate等工具管理。"
+
+# ----------------------------
+# 4. 编码风格与最佳实践
+# ----------------------------
+coding_style:
+  - rule: "错误处理"
+    description: "所有可能返回错误的函数都必须返回一个error。在调用端必须检查error。推荐使用 `fmt.Errorf` 或 `errors.Wrap` 来为错误添加上下文信息。"
+  - rule: "日志记录"
+    description: "使用Go 1.21+内置的 `slog` 包进行结构化日志记录。避免使用 `fmt.Println`。"
+  - rule: "上下文 (Context)"
+    description: "所有可能涉及I/O操作（如数据库查询、API调用）或需要超时的函数，其第一个参数都应该是 `context.Context`。"
+  - rule: "命名约定"
+    description: "遵循Go社区的命名规范。例如，接口名以 'er' 结尾 (e.g., Querier)，包名使用小写单数。"
+
+# ----------------------------
+# 5. 核心工作流指令 (非常重要)
+# ----------------------------
+key_workflows:
+  - name: "添加一个新的数据库查询"
+    steps:
+      - "1. 在 `internal/store/queries/` 目录下找到对应的 `.sql` 文件（如 `user.sql`），或者创建一个新的。"
+      - "2. 在文件中添加一个新的sqlc查询，格式为 `-- name: FunctionName :one/:many/:exec`。"
+      - "3. 在项目根目录运行 `sqlc generate` 命令。"
+      - "4. sqlc 会自动在 `internal/store/database/` 目录下更新或生成对应的类型安全的Go方法。"
+      - "5. 在相应的业务逻辑服务中（如 `internal/user/service.go`）调用这个新生成的方法。"
+
+  - name: "添加一个新的API端点"
+    steps:
+      - "1. 在 `internal/api/handlers/` 目录下创建或修改对应的handler函数。"
+      - "2. handler函数应该接收一个 `*gin.Context` 参数。"
+      - "3. handler函数负责解析请求、调用业务逻辑服务，并返回JSON响应。"
+      - "4. 在 `internal/api/router.go` 文件中，将新的handler函数绑定到一个路由路径上。"
+
+# ----------------------------
+# 6. 测试约定
+# ----------------------------
+testing_framework:
+  - name: "标准 `testing` 包"
+    usage: "所有测试都应使用Go内置的testing包编写，文件名以 `_test.go` 结尾。"
+  - name: "数据库测试"
+    description: "测试应使用一个独立的测试数据库。推荐使用 `testcontainers-go` 来在测试运行时动态启动一个PostgreSQL容器。"

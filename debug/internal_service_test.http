@@ -1,0 +1,183 @@
+### 内部服务管理API测试用例
+@baseUrl = http://localhost:8080
+@user_service_secret = <请填写用户服务的client_secret>
+@access_token = <请填写认证响应中的access_token>
+@admin_token = <请填写管理员服务的JWT令牌>
+@user_service_token = <请填写用户服务的JWT令牌>
+@tenant_service_token = <请填写租户服务的JWT令牌>
+@auth_service_token = <请填写认证服务的JWT令牌>
+@admin_service_token = <请填写管理员服务的JWT令牌>
+
+### 1. 注册新的内部服务
+POST {{baseUrl}}/v1/internal/services/register
+Content-Type: application/json
+
+{
+    "client_id": "user-service",
+    "service_name": "用户服务",
+    "description": "负责用户管理的内部服务"
+}
+
+### 2. 注册另一个内部服务
+POST {{baseUrl}}/v1/internal/services/register
+Content-Type: application/json
+
+{
+    "client_id": "tenant-service",
+    "service_name": "租户服务",
+    "description": "负责租户管理的内部服务"
+}
+
+### 3. 内部服务认证（使用返回的client_secret）
+POST {{baseUrl}}/v1/internal/services/authenticate
+Content-Type: application/json
+
+{
+    "client_id": "user-service",
+    "client_secret": "{{user_service_secret}}"
+}
+
+### 4. 验证JWT令牌
+POST {{baseUrl}}/v1/internal/services/validate-token
+Content-Type: application/json
+
+{
+    "token": "{{access_token}}"
+}
+
+### 5. 为服务授权权限（需要管理员权限）
+POST {{baseUrl}}/v1/internal/services/grant-scope
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+    "client_id": "user-service",
+    "scope_name": "user:read",
+    "granted_by": "admin"
+}
+
+### 6. 为服务授权多个权限
+POST {{baseUrl}}/v1/internal/services/grant-scope
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+    "client_id": "user-service",
+    "scope_name": "user:write",
+    "granted_by": "admin"
+}
+
+### 7. 为租户服务授权权限
+POST {{baseUrl}}/v1/internal/services/grant-scope
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+    "client_id": "tenant-service",
+    "scope_name": "tenant:read",
+    "granted_by": "admin"
+}
+
+### 8. 检查服务权限
+POST {{baseUrl}}/v1/internal/services/check-permission
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+    "client_id": "user-service",
+    "scope_name": "user:read"
+}
+
+### 9. 列出所有内部服务
+GET {{baseUrl}}/v1/internal/services
+Authorization: Bearer {{access_token}}
+
+### 10. 获取服务访问日志
+GET {{baseUrl}}/v1/internal/services/user-service/logs?limit=10&offset=0
+Authorization: Bearer {{access_token}}
+
+### 11. 获取服务统计信息
+GET {{baseUrl}}/v1/internal/services/user-service/statistics?since=24h
+Authorization: Bearer {{access_token}}
+
+### 12. 清理过期令牌
+POST {{baseUrl}}/v1/internal/services/cleanup-tokens
+Authorization: Bearer {{access_token}}
+
+### 13. 撤销服务权限
+POST {{baseUrl}}/v1/internal/services/revoke-scope
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+    "client_id": "user-service",
+    "scope_name": "user:delete"
+}
+
+### 内部服务API测试（需要特定权限）
+
+### 14. 访问需要user:read权限的API
+GET {{baseUrl}}/api/internal/users
+Authorization: Bearer {{user_service_token}}
+
+### 15. 访问需要user:write权限的API
+POST {{baseUrl}}/api/internal/users
+Content-Type: application/json
+Authorization: Bearer {{user_service_token}}
+
+{
+    "tenant_id": "test-tenant",
+    "email": "test@example.com",
+    "password": "password123"
+}
+
+### 16. 访问需要tenant:read权限的API
+GET {{baseUrl}}/api/internal/tenants
+Authorization: Bearer {{tenant_service_token}}
+
+### 17. 访问需要auth:token权限的API
+POST {{baseUrl}}/api/internal/auth/token
+Content-Type: application/json
+Authorization: Bearer {{auth_service_token}}
+
+{
+    "user_id": "test-user",
+    "scopes": ["user:read"]
+}
+
+### 18. 访问需要internal:admin权限的API
+GET {{baseUrl}}/api/internal/admin/services
+Authorization: Bearer {{admin_service_token}}
+
+### 19. 测试复合权限API（需要任意一个权限）
+GET {{baseUrl}}/api/internal/composite/any
+Authorization: Bearer {{user_service_token}}
+
+### 20. 测试复合权限API（需要所有权限）
+GET {{baseUrl}}/api/internal/composite/all
+Authorization: Bearer {{user_service_token}}
+
+### 21. 测试可选认证API（有认证）
+GET {{baseUrl}}/api/internal/optional/public
+Authorization: Bearer {{user_service_token}}
+
+### 22. 测试可选认证API（无认证）
+GET {{baseUrl}}/api/internal/optional/public
+
+### 环境变量设置
+# 在VS Code的REST Client扩展中设置以下变量：
+# baseUrl: http://localhost:8080
+# user_service_secret: 从注册响应中获取
+# access_token: 从认证响应中获取
+# admin_token: 管理员服务的JWT令牌
+# user_service_token: 用户服务的JWT令牌
+# tenant_service_token: 租户服务的JWT令牌
+# auth_service_token: 认证服务的JWT令牌
+# admin_service_token: 管理员服务的JWT令牌
+
+### 使用说明：
+# 1. 首先运行注册API获取client_secret
+# 2. 使用client_secret进行认证获取access_token
+# 3. 使用access_token访问其他需要认证的API
+# 4. 权限管理需要管理员权限
+# 5. 不同权限的API需要不同的scope 
