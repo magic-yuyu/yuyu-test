@@ -109,13 +109,6 @@ func getEnv(key, defaultValue string) string {
 
 // Load 从环境变量加载配置
 func Load() (*Config, error) {
-
-	for _, e := range os.Environ() {
-		fmt.Println(e)
-	}
-
-	fmt.Println("GO_ENV:", os.Getenv("GO_ENV"))
-
 	port, err := strconv.Atoi(getEnv("PORT", "8080"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid PORT: %w", err)
@@ -127,7 +120,6 @@ func Load() (*Config, error) {
 	algorithm := strings.ToUpper(getEnv("JWT_ALGORITHM", "HS256"))
 
 	userSecret := getEnv("JWT_USER_SECRET_KEY", "")
-	fmt.Println("JWT_USER_SECRET_KEY:", os.Getenv("JWT_USER_SECRET_KEY"))
 	if userSecret == "" {
 		return nil, fmt.Errorf("JWT_USER_SECRET_KEY environment variable is required for user JWT")
 	}

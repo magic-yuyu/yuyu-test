@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"runtime"
@@ -24,6 +25,8 @@ var startTime = time.Now()
 func k8sProbeOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
+		fmt.Println("访问ip:", ip)
+
 		if ip == "127.0.0.1" || strings.HasPrefix(ip, "192.168.") {
 			c.Next()
 			return
