@@ -96,7 +96,7 @@ go run cmd/server/main.go
 
 ```http
 @baseUrl = http://localhost:8080
-@apiKey = r8_OjJpSnPlnFs06Gjyhr8vLI1pHuLdKTY0DGv6d
+@apiKey = 
 ```
 
 **注意**: `apiKey` 需要从创建租户的响应中获取。

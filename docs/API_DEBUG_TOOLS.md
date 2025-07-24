@@ -142,7 +142,7 @@ brew install --cask postman
 
 ```http
 @baseUrl = http://localhost:8080
-@apiKey = r8_OjJpSnPlnFs06Gjyhr8vLI1pHuLdKTY0DGv6d
+@apiKey = 
 ```
 
 ### 认证方式
