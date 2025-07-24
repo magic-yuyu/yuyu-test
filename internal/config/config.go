@@ -37,10 +37,10 @@ var jwtValidators = map[string]JWTConfigValidator{
 func validateHS256(cfg *Config) error {
 	env := cfg.Environment
 	if cfg.JWTUserSecret == "" {
-		return fmt.Errorf("JWT_USER_SECRET_KEY or JWT_SECRET environment variable is required for user JWT")
+		return fmt.Errorf("JWT_USER_SECRET_KEY environment variable is required for user JWT")
 	}
 	if cfg.JWTServiceSecret == "" {
-		return fmt.Errorf("JWT_SERVICE_SECRET_KEY or JWT_SECRET environment variable is required for service JWT")
+		return fmt.Errorf("JWT_SERVICE_SECRET_KEY environment variable is required for service JWT")
 	}
 	if env == "production" {
 		if len(cfg.JWTUserSecret) < 32 {
@@ -120,6 +120,7 @@ func Load() (*Config, error) {
 	algorithm := strings.ToUpper(getEnv("JWT_ALGORITHM", "HS256"))
 
 	userSecret := getEnv("JWT_USER_SECRET_KEY", "")
+	fmt.Println("JWT_USER_SECRET_KEY:", os.Getenv("JWT_USER_SECRET_KEY"))
 	if userSecret == "" {
 		return nil, fmt.Errorf("JWT_USER_SECRET_KEY environment variable is required for user JWT")
 	}
